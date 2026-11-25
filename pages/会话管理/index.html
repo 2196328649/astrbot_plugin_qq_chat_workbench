@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QQ 会话管理台 0.2.10</title><link rel="stylesheet" href="./style.css?v=0.2.10"></head>
+<body>
+<main id="app" data-actions="always">
+<aside class="chats"><div class="panel-title">会话</div><input id="chatSearch" type="search" aria-label="搜索会话" placeholder="搜索名称 / QQ / 群号"><nav id="chats"></nav>
+  <footer class="chats-foot"><small id="health" class="health" role="status">正在连接 AstrBot…</small><button id="openSettings" type="button" aria-haspopup="dialog">设置</button></footer></aside>
+<section class="conversation">
+  <div class="conversation-head"><div><h2 id="title">选择一个会话</h2><small id="route">从插件启用后记录消息</small></div><button id="guideUser" type="button" disabled>为此用户添加引导</button></div>
+  <div class="search"><input id="messageSearch" type="search" aria-label="搜索消息" placeholder="搜索当前会话消息"><button id="older" type="button">更早消息</button></div>
+  <div id="messages"><div class="empty">收到 QQ 消息后，会话会出现在左侧。<br>消息旁的按钮或右键菜单可引用回复、添加引导。</div></div>
+  <form id="composer">
+    <section id="reference" class="reference" aria-label="已选择的引用对象" hidden><div><b id="referenceTitle"></b><button id="clearReference" type="button">取消引用</button></div><p id="referenceText"></p></section>
+    <div class="composer-options"><label>用途 <select id="composerMode"><option value="direct">直接发送消息</option><option value="reply">让 AI 回复所选消息</option><option value="new">在原对话中发起引导</option><option value="append">加入用户正在处理的任务</option></select></label><label id="replyModeLabel" hidden>AI 回复 <select id="replyMode"><option value="confirm">我确认后发送</option><option value="auto">生成后自动发送</option></select></label></div>
+    <label id="appendTaskLabel" hidden>加入任务 <select id="appendTask" aria-label="加入用户任务"></select></label>
+    <label id="composerLabel" for="text">发送给用户的消息</label><small id="guidanceHint">以下内容将以机器人 QQ 账号原样发送。</small>
+    <div id="attachment"></div><textarea id="text" aria-label="消息内容" placeholder="输入要发送的消息" maxlength="10000"></textarea>
+    <div class="sendbar"><label class="file" id="imageLabel">＋ 图片<input id="image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden></label><button id="clearImage" type="button" hidden>移除图片</button><small id="sendHint">Ctrl / ⌘ + Enter 发送</small><button id="send" class="primary" disabled>发送消息</button></div>
+  </form>
+</section>
+<aside class="debug">
+  <details open id="taskPanel"><summary>正在处理 / 人工接管 <span id="runningCount">0</span><span id="waitingCount" role="button" hidden></span></summary><select id="jobs" aria-label="选择处理任务"></select><div id="jobInfo">暂无任务</div><button id="stop" type="button" disabled>中断任务</button><button id="guide" type="button" disabled>为此任务添加引导</button><button id="newFromJob" type="button" disabled>基于此任务新建</button><button id="useDraft" type="button" hidden>将旧草稿填入发送框</button>
+    <div id="instructionHistory" hidden></div>
+    <section id="reviewPanel" hidden><b>待确认回复</b><small id="reviewTarget"></small><div id="reviewBody"></div><button id="approveReply" type="button" class="primary">确认发送以上回复</button><button id="discardReply" type="button">放弃并停止任务</button></section>
+  </details>
+  <div class="panel-title log-title">日志<span class="segmented" role="group" aria-label="日志范围"><button id="logSelected" type="button" aria-pressed="true">所选消息</button><button id="logAll" type="button" aria-pressed="false" title="包含没有关联到消息的后台日志">全部</button></span><button id="export" type="button">导出</button></div>
+  <p id="trace">点击聊天气泡查看关联日志</p><div class="search"><select id="level" aria-label="日志等级"><option value="">全部等级</option><option>DEBUG</option><option>INFO</option><option>WARNING</option><option>ERROR</option><option>CRITICAL</option></select><input id="logSearch" type="search" aria-label="搜索日志" placeholder="筛选日志"></div><button id="olderLogs" type="button">更早日志</button><div id="logs"><div class="empty">暂无选中的消息</div></div>
+</aside>
+</main>
+<dialog id="settings" aria-labelledby="settingsTitle"><div class="settings-body">
+  <div class="settings-head"><b id="settingsTitle">设置</b><button id="closeSettings" type="button" aria-label="关闭设置">关闭</button></div>
+  <section><h3>图片与头像</h3>
+    <label class="setting"><span><b>自动显示聊天图片</b><small>打开会话时直接显示图片，不用逐张点击。图片由浏览器从 QQ 服务器加载；加载失败（多为已过期）的图片显示重试按钮。</small></span><input id="settingAutoImages" type="checkbox" class="switch"></label>
+    <label class="setting"><span><b>保存聊天图片</b><small>QQ 的图片地址过一段时间会失效，对方撤回后也无法再加载。保存到服务器的图片在聊天记录保留期内（14 天）可继续查看和下载。<span id="imageUsage"></span></small></span><select id="settingImageSave"><option value="manual">手动保存（点图片下的“保存”）</option><option value="viewed">自动保存看过的图片</option><option value="all">自动保存全部图片（防撤回）</option></select></label>
+    <label class="setting"><span><b>图片保存空间上限</b><small>超过上限时自动删除最早保存的图片；服务器剩余空间不足 2 GB 时暂停保存。</small></span><select id="settingImageQuota"><option value="512">512 MB</option><option value="1024">1 GB</option><option value="2048">2 GB</option><option value="4096">4 GB</option></select></label>
+    <label class="setting"><span><b>显示 QQ 头像</b><small>像 QQ 一样在会话列表和消息旁显示用户、群头像。头像由浏览器从 QQ 头像服务器加载，加载失败时显示名字首字。</small></span><input id="settingAvatars" type="checkbox" class="switch"></label>
+  </section>
+  <section><h3>发送</h3>
+    <label class="setting"><span><b>发送快捷键</b><small>另一种组合用于换行；输入法选字时按 Enter 不会发送。</small></span><select id="settingSendKey"><option value="ctrl_enter">Ctrl / ⌘ + Enter 发送</option><option value="enter">Enter 发送</option></select></label>
+    <label class="setting"><span><b>AI 回复默认发送方式</b><small>新打开的会话使用这个方式，发送前仍可在发送框中改。</small></span><select id="settingReplyMode"><option value="confirm">我确认后发送</option><option value="auto">生成后自动发送</option></select></label>
+  </section>
+  <section><h3>界面</h3>
+    <label class="setting"><span><b>消息操作按钮</b><small>“引用回复 / AI 回复 / 添加引导”。右键菜单始终可用。</small></span><select id="settingMessageActions"><option value="always">始终显示</option><option value="hover">鼠标移到消息上时显示</option></select></label>
+  </section>
+  <p class="settings-foot"><small id="settingsStatus" role="status"></small><small id="about">设置保存在插件数据库中，所有管理员共用。</small></p>
+</div></dialog>
+<div id="viewer" role="dialog" aria-label="查看图片" hidden><img id="viewerImage" alt="图片" referrerpolicy="no-referrer"><div class="viewer-tools"><button id="viewerDownload" type="button" hidden>下载原图</button><button id="viewerClose" type="button">关闭</button></div></div>
+<div id="messageMenu" role="menu" aria-label="消息操作" hidden><button id="menuReply" role="menuitem">引用消息并直接回复</button><button id="menuAiReply" role="menuitem">让 AI 回复这条消息</button><button id="menuGuideMessage" role="menuitem">引用消息添加引导</button><button id="menuGuideUser" role="menuitem">为这个用户添加引导</button></div><div id="notice" role="status" aria-live="polite"></div><script type="module" src="./app.js?v=0.2.10"></script></body></html>

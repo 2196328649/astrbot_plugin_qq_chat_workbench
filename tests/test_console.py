@@ -2026,7 +2026,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
                     "/astrbot_plugin_super_admin/settings",
                     p.settings,
                     ["GET", "POST"],
-                    "超级会话管理",
+                    "QQ 聊天工作台",
                 ),
                 p.context.registered_web_apis,
             )

@@ -25,7 +25,7 @@ from .ordered_worker import OrderedWorker
 from .store import Store, segments, trace_context
 
 NAME = "astrbot_plugin_super_admin"
-VERSION = "0.2.10"
+VERSION = "0.2.11"
 # Console display preferences and their allowed values; the first is the default.
 # The page runs in a sandboxed iframe without browser storage, so they live in
 # console.db and are shared by every administrator.
@@ -452,7 +452,7 @@ class SuperAdmin(GuidanceMixin, MediaMixin, Star):
             ("media_file", self.media_file, ["GET"]),
         ]:
             self.context.register_web_api(
-                f"/{NAME}/{path}", handler, methods, "超级会话管理"
+                f"/{NAME}/{path}", handler, methods, "QQ 聊天工作台"
             )
         await self.start_media(directory)
         self.worker = asyncio.create_task(self.flush_logs())

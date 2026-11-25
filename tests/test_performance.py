@@ -633,7 +633,7 @@ class PerformanceTests(unittest.IsolatedAsyncioTestCase):
         try:
             await until(entered.is_set)
             state = json.loads((await asyncio.wait_for(p.state(), 0.3)).body)
-            self.assertEqual(state["version"], "0.2.10")
+            self.assertEqual(state["version"], "0.2.11")
             self.assertEqual(state["performance"]["db"]["pending"], 1)
             self.assertEqual(state["performance"]["media"]["limit"], 4)
         finally:

@@ -26,7 +26,7 @@ from .store import Store, segments, trace_context
 
 NAME = "astrbot_plugin_qq_chat_workbench"
 LEGACY_NAME = "astrbot_plugin_super_admin"
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 # Console display preferences and their allowed values; the first is the default.
 # The page runs in a sandboxed iframe without browser storage, so they live in
 # console.db and are shared by every administrator.

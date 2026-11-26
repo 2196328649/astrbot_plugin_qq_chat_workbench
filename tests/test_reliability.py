@@ -13,7 +13,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
 import test_console as console_tests
-from astrbot_plugin_super_admin.store import Store, trace_context
+from astrbot_plugin_qq_chat_workbench.store import Store, trace_context
 from loguru import logger as loguru_logger
 
 
@@ -87,7 +87,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         original = AsyncMock(return_value="original-result")
         for patcher in (
             patch(
-                "astrbot_plugin_super_admin.main.get_astrbot_data_path",
+                "astrbot_plugin_qq_chat_workbench.main.get_astrbot_data_path",
                 return_value=self.temp.name,
             ),
             patch.object(PipelineScheduler, "execute", original),
@@ -205,10 +205,14 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         warning = Mock()
         try:
             with (
-                patch("astrbot_plugin_super_admin.main.OWNER_DRAIN_SECONDS", 0.05),
-                patch("astrbot_plugin_super_admin.main.OWNER_CANCEL_SECONDS", 0.05),
                 patch(
-                    "astrbot_plugin_super_admin.main.logger",
+                    "astrbot_plugin_qq_chat_workbench.main.OWNER_DRAIN_SECONDS", 0.05
+                ),
+                patch(
+                    "astrbot_plugin_qq_chat_workbench.main.OWNER_CANCEL_SECONDS", 0.05
+                ),
+                patch(
+                    "astrbot_plugin_qq_chat_workbench.main.logger",
                     SimpleNamespace(warning=warning),
                 ),
             ):
@@ -254,7 +258,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         raw.assert_not_awaited()
 
     async def test_reload_still_drains_an_accepted_dashboard_request(self):
-        from astrbot_plugin_super_admin.main import chat_previews
+        from astrbot_plugin_qq_chat_workbench.main import chat_previews
 
         p = self.plugin
         self.bot()
@@ -267,7 +271,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
             return chat_previews(rows)
 
         try:
-            with patch("astrbot_plugin_super_admin.main.chat_previews", previews):
+            with patch("astrbot_plugin_qq_chat_workbench.main.chat_previews", previews):
                 request = asyncio.create_task(self.get("chats", {}))
                 await until(entered.is_set)
                 stopping = asyncio.create_task(p.terminate())
@@ -309,7 +313,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_ordinary_model_request_survives_console_db_failure(self):
         from astrbot.core.agent.message import Message
-        from astrbot_plugin_super_admin.guidance import ToolLoopAgentRunner
+        from astrbot_plugin_qq_chat_workbench.guidance import ToolLoopAgentRunner
 
         p = self.plugin
         runner = SimpleNamespace(
@@ -508,7 +512,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         from astrbot.core.pipeline.process_stage.method.agent_sub_stages.internal import (
             InternalAgentSubStage,
         )
-        from astrbot_plugin_super_admin.guidance import GUIDANCE_MARKER
+        from astrbot_plugin_qq_chat_workbench.guidance import GUIDANCE_MARKER
 
         p = self.plugin
         saved = AsyncMock()
@@ -521,7 +525,7 @@ class ReliabilityTests(unittest.IsolatedAsyncioTestCase):
         ]
         event = SimpleNamespace(
             get_extra=lambda key, default=None: (
-                "guided" if key == "_super_admin_guided_trace" else default
+                "guided" if key == "_qq_chat_workbench_guided_trace" else default
             )
         )
         with patch.object(InternalAgentSubStage, "_save_to_history", saved):

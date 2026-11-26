@@ -3,8 +3,8 @@
 import unittest
 
 import test_console as console_tests
-from astrbot_plugin_super_admin.main import SETTINGS, console_settings
-from astrbot_plugin_super_admin.store import Store
+from astrbot_plugin_qq_chat_workbench.main import SETTINGS, console_settings
+from astrbot_plugin_qq_chat_workbench.store import Store
 
 DEFAULTS = {
     "auto_images": False,

@@ -10,7 +10,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import test_console as console_tests
-from astrbot_plugin_super_admin import guidance as guided
+from astrbot_plugin_qq_chat_workbench import guidance as guided
 
 ROUTES = {"group": ("100", ""), "private": ("300", ""), "temporary": ("300", "100")}
 
@@ -261,7 +261,7 @@ class ProactiveReplyTests(unittest.IsolatedAsyncioTestCase):
                     )
                     self.assertEqual(len(events), 1)
                     self.assertEqual(
-                        bool(events[0].get_extra("_super_admin_quote_reply")),
+                        bool(events[0].get_extra("_qq_chat_workbench_quote_reply")),
                         mode == "reply",
                     )
                     self.assertEqual(dict(config), before)

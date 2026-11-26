@@ -12,9 +12,9 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import test_console as console_tests
-from astrbot_plugin_super_admin.guidance import approved_send, prepare_pending
-from astrbot_plugin_super_admin.ordered_worker import OrderedWorker
-from astrbot_plugin_super_admin.store import (
+from astrbot_plugin_qq_chat_workbench.guidance import approved_send, prepare_pending
+from astrbot_plugin_qq_chat_workbench.ordered_worker import OrderedWorker
+from astrbot_plugin_qq_chat_workbench.store import (
     PENDING_REPLY_LIMIT,
     PENDING_TOTAL_LIMIT,
     segments,
@@ -219,7 +219,7 @@ class PerformanceTests(unittest.IsolatedAsyncioTestCase):
             return segments(value)
 
         try:
-            with patch("astrbot_plugin_super_admin.main.segments", thumbnail):
+            with patch("astrbot_plugin_qq_chat_workbench.main.segments", thumbnail):
                 task = self.sending()
                 await until(entered.is_set)
                 rows = await asyncio.wait_for(
@@ -245,7 +245,7 @@ class PerformanceTests(unittest.IsolatedAsyncioTestCase):
             return segments(value)
 
         try:
-            with patch("astrbot_plugin_super_admin.main.segments", thumbnail):
+            with patch("astrbot_plugin_qq_chat_workbench.main.segments", thumbnail):
                 task = self.sending()
                 await until(lambda: bool(p.review_waiters))
                 pending_id = next(iter(p.review_waiters))
@@ -568,7 +568,7 @@ class PerformanceTests(unittest.IsolatedAsyncioTestCase):
             release.set()
 
     async def test_pending_utf8_caps_are_atomic_and_unchanged(self):
-        import astrbot_plugin_super_admin.store as module
+        import astrbot_plugin_qq_chat_workbench.store as module
 
         self.assertEqual(PENDING_REPLY_LIMIT, 32 * 1024 * 1024)
         self.assertEqual(PENDING_TOTAL_LIMIT, 128 * 1024 * 1024)
@@ -633,7 +633,7 @@ class PerformanceTests(unittest.IsolatedAsyncioTestCase):
         try:
             await until(entered.is_set)
             state = json.loads((await asyncio.wait_for(p.state(), 0.3)).body)
-            self.assertEqual(state["version"], "0.2.11")
+            self.assertEqual(state["version"], "0.3.0")
             self.assertEqual(state["performance"]["db"]["pending"], 1)
             self.assertEqual(state["performance"]["media"]["limit"], 4)
         finally:
@@ -646,7 +646,7 @@ class PerformanceTests(unittest.IsolatedAsyncioTestCase):
         import uuid
 
         from astrbot.core.agent.message import Message
-        from astrbot_plugin_super_admin.guidance import ToolLoopAgentRunner
+        from astrbot_plugin_qq_chat_workbench.guidance import ToolLoopAgentRunner
 
         p = self.plugin
         for mode in ("commit", "fail", "cancel"):
@@ -758,7 +758,7 @@ class PerformanceTests(unittest.IsolatedAsyncioTestCase):
                     response_ready.set()
 
     async def test_late_chat_response_does_not_start_lookups_during_shutdown(self):
-        from astrbot_plugin_super_admin.main import chat_previews
+        from astrbot_plugin_qq_chat_workbench.main import chat_previews
 
         p = self.plugin
         p.store.chat("qq", "999", "private", "200")
@@ -770,7 +770,7 @@ class PerformanceTests(unittest.IsolatedAsyncioTestCase):
             return chat_previews(rows)
 
         try:
-            with patch("astrbot_plugin_super_admin.main.chat_previews", previews):
+            with patch("astrbot_plugin_qq_chat_workbench.main.chat_previews", previews):
                 request_task = asyncio.create_task(self.get("chats", {}))
                 await until(entered.is_set)
                 p.terminating = True
@@ -913,7 +913,9 @@ class RetentionTests(unittest.IsolatedAsyncioTestCase):
         store = self.plugin.store
         now = 10000000.0
         cutoff = now - 14 * 86400
-        with patch("astrbot_plugin_super_admin.store.time.time", return_value=now):
+        with patch(
+            "astrbot_plugin_qq_chat_workbench.store.time.time", return_value=now
+        ):
             old_chat = store.chat("qq", "999", "private", "200")
             kept_chat = store.chat("qq", "999", "private", "201")
             store.execute("UPDATE chats SET updated=?", (cutoff - 1,))

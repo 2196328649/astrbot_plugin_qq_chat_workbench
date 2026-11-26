@@ -11,8 +11,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
-from astrbot_plugin_super_admin.main import SuperAdmin
-from astrbot_plugin_super_admin.store import Store, redact, trace_context
+from astrbot_plugin_qq_chat_workbench.main import QQChatWorkbench
+from astrbot_plugin_qq_chat_workbench.store import Store, redact, trace_context
 from PIL import Image
 
 
@@ -28,7 +28,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.plugin = object.__new__(SuperAdmin)
+        self.plugin = object.__new__(QQChatWorkbench)
         p = self.plugin
         p.store = Store(Path(self.temp.name) / "test.db")
         p.active = True
@@ -68,7 +68,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
         for task in pending:
             task.cancel()
         await asyncio.gather(*pending, return_exceptions=True)
-        from astrbot_plugin_super_admin.guidance import ToolLoopAgentRunner
+        from astrbot_plugin_qq_chat_workbench.guidance import ToolLoopAgentRunner
 
         if ToolLoopAgentRunner._iter_llm_responses is getattr(
             self.plugin, "guided_llm_responses", None
@@ -609,7 +609,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
                     self.assertNotIn("_save_state_lock", snapshot)
                     self.assertNotIn("_save_commit_lock", snapshot)
                     expected_platform = copy.deepcopy(original["platform_settings"])
-                    if event.get_extra("_super_admin_reference_kind") == "user":
+                    if event.get_extra("_qq_chat_workbench_reference_kind") == "user":
                         expected_platform["reply_with_quote"] = False
                         if event.get_group_id():
                             expected_platform["reply_with_mention"] = True
@@ -650,7 +650,9 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
                         unified_msg_origin=umo,
                         get_group_id=lambda group=group: group,
                         get_extra=lambda key, reference=reference: (
-                            reference if key == "_super_admin_reference_kind" else None
+                            reference
+                            if key == "_qq_chat_workbench_reference_kind"
+                            else None
                         ),
                         test_trace=trace,
                     )
@@ -830,7 +832,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_mid_request_guidance_restarts_only_the_model(self):
         from astrbot.core.agent.message import Message
-        from astrbot_plugin_super_admin.guidance import (
+        from astrbot_plugin_qq_chat_workbench.guidance import (
             GUIDANCE_MARKER,
             ToolLoopAgentRunner,
         )
@@ -944,7 +946,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
         from astrbot.core.platform.platform_metadata import PlatformMetadata
         from astrbot.core.provider.entities import LLMResponse, ProviderRequest
         from astrbot.core.utils.shared_preferences import SharedPreferences
-        from astrbot_plugin_super_admin.guidance import (
+        from astrbot_plugin_qq_chat_workbench.guidance import (
             GUIDANCE_MARKER,
             NO_USER_MESSAGE,
             ToolLoopAgentRunner,
@@ -1249,7 +1251,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(tool_calls), 3)
 
     def test_review_includes_forwarded_content_and_full_text(self):
-        from astrbot_plugin_super_admin.guidance import review_segments
+        from astrbot_plugin_qq_chat_workbench.guidance import review_segments
 
         content = "Long reply " * 2000
         preview = review_segments(
@@ -1596,7 +1598,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
         from astrbot.core.agent.run_context import ContextWrapper
         from astrbot.core.agent.tool import ToolSet
         from astrbot.core.provider.entities import ProviderRequest
-        from astrbot_plugin_super_admin.guidance import ToolLoopAgentRunner
+        from astrbot_plugin_qq_chat_workbench.guidance import ToolLoopAgentRunner
 
         runner = ToolLoopAgentRunner()
         await runner.reset(
@@ -2014,7 +2016,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
         event = SimpleNamespace(get_platform_name=lambda: "other")
         with (
             patch(
-                "astrbot_plugin_super_admin.main.get_astrbot_data_path",
+                "astrbot_plugin_qq_chat_workbench.main.get_astrbot_data_path",
                 return_value=self.temp.name,
             ),
             patch.object(PipelineScheduler, "execute", original),
@@ -2023,7 +2025,7 @@ class ConsoleTests(unittest.IsolatedAsyncioTestCase):
             # The settings dialog saves through the same registered route.
             self.assertIn(
                 (
-                    "/astrbot_plugin_super_admin/settings",
+                    "/astrbot_plugin_qq_chat_workbench/settings",
                     p.settings,
                     ["GET", "POST"],
                     "QQ 聊天工作台",

@@ -11,7 +11,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
 import test_console as console_tests
-from astrbot_plugin_super_admin.store import trace_context
+from astrbot_plugin_qq_chat_workbench.store import trace_context
 from loguru import logger as loguru_logger
 
 
@@ -139,7 +139,7 @@ class FollowupTests(unittest.IsolatedAsyncioTestCase):
     def test_runner_type_follows_the_4_29_setting(self):
         from astrbot.core.config.default import DEFAULT_CONFIG
         from astrbot.core.utils.migra_helper import _migrate_agent_runner_config
-        from astrbot_plugin_super_admin.guidance import runner_type
+        from astrbot_plugin_qq_chat_workbench.guidance import runner_type
 
         self.assertEqual(runner_type(DEFAULT_CONFIG), "local")
         # Loading a pre-4.29 dify configuration moves the setting and drops the
@@ -314,7 +314,7 @@ class FollowupTests(unittest.IsolatedAsyncioTestCase):
         try:
             await asyncio.sleep(0)
             with patch(
-                "astrbot_plugin_super_admin.main.logger",
+                "astrbot_plugin_qq_chat_workbench.main.logger",
                 SimpleNamespace(warning=warning),
             ):
                 await asyncio.wait_for(p.terminate(), 5)

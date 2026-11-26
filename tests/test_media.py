@@ -14,9 +14,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import test_console as console_tests
 import test_reliability as reliability_tests
-from astrbot_plugin_super_admin import media as media_module
-from astrbot_plugin_super_admin.main import SETTINGS, task_trace
-from astrbot_plugin_super_admin.media import (
+from astrbot_plugin_qq_chat_workbench import media as media_module
+from astrbot_plugin_qq_chat_workbench.main import SETTINGS, task_trace
+from astrbot_plugin_qq_chat_workbench.media import (
     MediaError,
     allowed_address,
     image_address,
@@ -24,7 +24,7 @@ from astrbot_plugin_super_admin.media import (
     sniff,
     sweep_copies,
 )
-from astrbot_plugin_super_admin.store import trace_context
+from astrbot_plugin_qq_chat_workbench.store import trace_context
 from PIL import Image
 
 IMAGE_URL = "https://multimedia.nt.qq.com.cn/download?appid=1407&fileid=abc"
@@ -962,7 +962,9 @@ class MediaTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertIsNone(job["source_message_id"])
         self.assertEqual([row["guidance"] for row in copied], ["为用户画一只猫"])
-        event.set_extra.assert_any_call("_super_admin_guided_trace", seen["trace"])
+        event.set_extra.assert_any_call(
+            "_qq_chat_workbench_guided_trace", seen["trace"]
+        )
         event.set_extra.assert_any_call("enable_streaming", False)
 
     async def test_completion_among_mixed_tasks_is_reviewed(self):
@@ -1022,13 +1024,13 @@ class MediaTests(unittest.IsolatedAsyncioTestCase):
         await self.initialized()
         paths = {route[0] for route in p.context.registered_web_apis}
         for name in ("media", "media_save", "media_file"):
-            self.assertIn(f"/astrbot_plugin_super_admin/{name}", paths)
+            self.assertIn(f"/astrbot_plugin_qq_chat_workbench/{name}", paths)
         self.assertEqual(len(p.media_tasks), media_module.WORKERS)
         self.assertEqual(
             p.media_dir,
             Path(self.temp.name)
             / "plugin_data"
-            / "astrbot_plugin_super_admin"
+            / "astrbot_plugin_qq_chat_workbench"
             / "media",
         )
         tasks = list(p.media_tasks)

@@ -4,7 +4,7 @@
 
 ## 安装与使用
 
-适配 AstrBot 4.29.1 至 4.29.4 的 `aiocqhttp`（OneBot v11）。可在 AstrBot 面板按[仓库地址](https://github.com/2196328649/astrbot_plugin_super_admin)安装，也可导入插件 ZIP。打开 **插件 → QQ 聊天工作台 → 插件页面 → 会话管理**。首次启用只从新收到的消息开始记录，不导入历史聊天。
+适配 AstrBot 4.29.1 至 4.29.4 的 `aiocqhttp`（OneBot v11）。可在 AstrBot 面板按[仓库地址](https://github.com/2196328649/astrbot_plugin_qq_chat_workbench)安装，也可导入插件 ZIP。打开 **插件 → QQ 聊天工作台 → 插件页面 → 会话管理**。全新安装只记录启用后收到的消息，不从 QQ 导入历史。用过旧版请先看下方的升级说明。
 
 - **人工回复：** 打开目标会话，直接发送文字或图片，或选中来信引用回复。支持撤回有协议消息 ID 的已发送消息，是否成功由 QQ 和协议端决定。
 - **AI 回复：** 在群成员或好友的消息旁选「让 AI 回复这条消息」或「添加引导」。本地 Agent 沿用该会话的模型、人设和工具；默认由管理员确认后发送。第三方 Agent 不支持任务内引导。
@@ -15,7 +15,17 @@
 
 此插件面向受信任的机器人管理员。能访问相关面板管理 API 的人可以查看已记录的聊天和日志、以机器人身份发送消息，并使用原会话可调用的 AI 工具。请限制面板和备份的访问权限，并在记录群聊或保存撤回图片之前告知有关成员、取得必要授权。
 
-聊天、日志、引导和待审回复保存在 `data/plugin_data/astrbot_plugin_super_admin/console.db`；图片在同目录的 `media/`。备份和恢复时请同时处理数据库与图片目录。普通消息与日志按 14 天和条数上限清理；未确认的回复会保留以便恢复，卸载不自动删除插件数据。日志仅做基本脱敏，请勿公开原始日志和数据库。启用头像或远程图片显示后，浏览器会访问对应的 QQ 服务器；运行 AI 仍遵循原会话的模型供应商配置。
+聊天、日志、引导和待审回复保存在 `data/plugin_data/astrbot_plugin_qq_chat_workbench/console.db`；图片在同目录的 `media/`。备份和恢复时请停用插件并处理整个目录。普通消息与日志按 14 天和条数上限清理；未确认的回复会保留以便恢复。卸载时不要勾选删除数据，除非确实要清空记录。日志仅做基本脱敏，请勿公开原始日志和数据库。启用头像或远程图片显示后，浏览器会访问对应的 QQ 服务器；运行 AI 仍遵循原会话的模型供应商配置。
+
+## 从 0.2.x 升级到 0.3.0
+
+这是同一个插件。`astrbot_plugin_super_admin` 是旧标识；从 0.3.0 起，插件标识、仓库、安装包和接口均使用 `astrbot_plugin_qq_chat_workbench`。
+
+1. 停用旧插件，备份整个 `data/plugin_data/astrbot_plugin_super_admin/`，包括数据库、SQLite 附属文件和 `media/`。将备份放在插件目录之外。
+2. 在面板卸载旧版，**不要勾选删除插件数据**。重启 AstrBot，再按新仓库地址或 ZIP 安装。不要同时保留两份插件代码。
+3. 新版首次启动会把旧数据目录整体改为新名，之后直接使用新目录。打开工作台核对原有聊天、已保存的图片和待审回复。若新旧数据目录同时存在，插件会停止加载，不合并、不覆盖；请停机备份两份，再将选定的一份放在新目录，另一份移出 `plugin_data`，然后重载。
+
+面板自带页面不需要改设置。自行调用接口的脚本请把路径里的插件标识换成新名，例如 `/api/plug/astrbot_plugin_qq_chat_workbench/state`。旧接口不再注册。
 
 ## 0.2.11
 
@@ -29,4 +39,4 @@
 
 ## 开发验证
 
-使用匹配的 AstrBot 核心及其依赖，并将插件目录的父目录加入 `PYTHONPATH`。插件目录名应为 `astrbot_plugin_super_admin`。从插件根目录执行 `python -B -m unittest discover -s tests -v`；前端用 Node 运行 `tests/test_*.cjs` 中的每个脚本，并以 `pages/会话管理/app.js` 为其第一个参数。测试使用临时数据库和模拟 QQ 客户端，不需要服务器凭据、真实模型或运维工程。
+使用匹配的 AstrBot 核心及其依赖，并将插件目录的父目录加入 `PYTHONPATH`。插件目录名应为 `astrbot_plugin_qq_chat_workbench`。从插件根目录执行 `python -B -m unittest discover -s tests -v`；前端用 Node 运行 `tests/test_*.cjs` 中的每个脚本，并以 `pages/会话管理/app.js` 为其第一个参数。测试使用临时数据库和模拟 QQ 客户端，不需要服务器凭据、真实模型或运维工程。

@@ -24,8 +24,9 @@ from .media import MediaMixin
 from .ordered_worker import OrderedWorker
 from .store import Store, segments, trace_context
 
-NAME = "astrbot_plugin_super_admin"
-VERSION = "0.2.11"
+NAME = "astrbot_plugin_qq_chat_workbench"
+LEGACY_NAME = "astrbot_plugin_super_admin"
+VERSION = "0.3.0"
 # Console display preferences and their allowed values; the first is the default.
 # The page runs in a sandboxed iframe without browser storage, so they live in
 # console.db and are shared by every administrator.
@@ -153,7 +154,44 @@ def console_settings(rows):
     return result
 
 
-class SuperAdmin(GuidanceMixin, MediaMixin, Star):
+def prepare_data_directory(data_root, registered_routes):
+    identifiers = (NAME, LEGACY_NAME)
+    prefixes = tuple(f"/{name}/" for name in identifiers)
+    current_code = Path(__file__).parent
+    for name in identifiers:
+        other = data_root / "plugins" / name
+        if (
+            other.name == current_code.name
+            and other.resolve() == current_code.resolve()
+        ):
+            continue
+        if (other / "main.py").is_file() or (other / f"{name}.py").is_file():
+            raise RuntimeError(
+                f"发现另一份工作台插件：{other}。请卸载重复安装，保留插件数据后重载。"
+            )
+    if any(route.startswith(prefixes) for route in registered_routes):
+        raise RuntimeError(
+            "另一份工作台插件仍在运行。请先卸载重复安装，保留插件数据后重启 AstrBot。"
+        )
+
+    directory = data_root / "plugin_data" / NAME
+    legacy = directory.with_name(LEGACY_NAME)
+    if legacy.exists() or legacy.is_symlink():
+        if directory.exists() or directory.is_symlink():
+            raise RuntimeError(
+                f"新旧数据目录同时存在，未做改动。请停机备份 {legacy} 和 {directory}，将要使用的一份保留在 {directory}，另一份移出 plugin_data 后重载。"
+            )
+        if not legacy.is_dir() or legacy.is_symlink():
+            raise RuntimeError(
+                f"旧数据路径不是普通目录：{legacy}。请停机备份并手动迁移至 {directory}。"
+            )
+        legacy.rename(directory)
+    else:
+        directory.mkdir(parents=True, exist_ok=True)
+    return directory
+
+
+class QQChatWorkbench(GuidanceMixin, MediaMixin, Star):
     def __init__(self, context: Context):
         super().__init__(context)
         self.active = False
@@ -172,10 +210,10 @@ class SuperAdmin(GuidanceMixin, MediaMixin, Star):
     def _ensure_workers(self):
         # Lazy construction also supports isolated fixtures without Star.__init__.
         if not hasattr(self, "db_worker"):
-            self.db_worker = OrderedWorker("super-admin-db", max_pending=32)
-            self.media_worker = OrderedWorker("super-admin-media", max_pending=4)
+            self.db_worker = OrderedWorker("qq-chat-workbench-db", max_pending=32)
+            self.media_worker = OrderedWorker("qq-chat-workbench-media", max_pending=4)
             # Disk work for saved images; never shares a lane with ingestion.
-            self.file_worker = OrderedWorker("super-admin-files", max_pending=8)
+            self.file_worker = OrderedWorker("qq-chat-workbench-files", max_pending=8)
             self.stop_revisions = {}
             self.stopping_traces = set()
             self.preserve_pending_traces = set()
@@ -274,19 +312,20 @@ class SuperAdmin(GuidanceMixin, MediaMixin, Star):
 
     async def initialize(self):
         self._ensure_workers()
-        directory = Path(get_astrbot_data_path()) / "plugin_data" / NAME
+        routes = tuple(entry[0] for entry in self.context.registered_web_apis)
 
         def open_store():
-            directory.mkdir(parents=True, exist_ok=True)
+            directory = prepare_data_directory(Path(get_astrbot_data_path()), routes)
             self.store = Store(directory / "console.db")
             self.store.repair_group_notices(directory)
             self.store.repair_background_messages(directory)
             self.store.execute(
                 "UPDATE jobs SET status='interrupted' WHERE status IN ('running','stopping')"
             )
+            return directory
 
         try:
-            await self.db_call(open_store)
+            directory = await self.db_call(open_store)
             self.console_values = console_settings(
                 await self.db_call(self.store.rows, "SELECT key,value FROM settings")
             )
@@ -357,7 +396,9 @@ class SuperAdmin(GuidanceMixin, MediaMixin, Star):
                             if parents:
                                 parent = parents[0]
                                 self.mark_guided(trace)
-                                event.set_extra("_super_admin_guided_trace", trace)
+                                event.set_extra(
+                                    "_qq_chat_workbench_guided_trace", trace
+                                )
                                 event.set_extra("enable_streaming", False)
                                 await self.db_call(
                                     self.store.execute,

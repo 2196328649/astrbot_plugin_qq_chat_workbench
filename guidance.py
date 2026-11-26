@@ -17,7 +17,7 @@ from astrbot.core.agent.runners.tool_loop_agent_runner import ToolLoopAgentRunne
 
 from .store import PENDING_REPLY_LIMIT, segments, trace_context
 
-approved_send = ContextVar("super_admin_approved_send", default=None)
+approved_send = ContextVar("qq_chat_workbench_approved_send", default=None)
 GUIDANCE_MARKER = "[Administrator instructions for this task only]"
 # Instruction for a proactive reply, which needs no administrator wording.
 PROACTIVE_REPLY_GUIDANCE = (
@@ -225,7 +225,7 @@ class GuidanceMixin:
         ):
             # AstrBot only honors _no_save on user/assistant messages, not system notes.
             # Also filter while unloading: a stopped guided task still saves history.
-            if event.get_extra("_super_admin_guided_trace"):
+            if event.get_extra("_qq_chat_workbench_guided_trace"):
                 messages = [
                     message
                     for message in messages
@@ -515,7 +515,7 @@ class GuidanceMixin:
                     return error_response("暂时无法读取所选用户信息，请稍后重试")
                 if mode == "reply":
                     # run_guided_task forces a quote of the selected message.
-                    event.set_extra("_super_admin_quote_reply", True)
+                    event.set_extra("_qq_chat_workbench_quote_reply", True)
                 config = self.context.get_config(event.unified_msg_origin)
                 if runner_type(config) != "local":
                     return error_response(
@@ -582,7 +582,7 @@ class GuidanceMixin:
                     # path; a refused append must not slow its ordinary replies.
                     self.mark_guided(trace)
                     if event is not None:
-                        event.set_extra("_super_admin_guided_trace", trace)
+                        event.set_extra("_qq_chat_workbench_guided_trace", trace)
                         event.set_extra("enable_streaming", False)
                     control["revision"] += 1
                     control["changed"].set()
@@ -741,7 +741,7 @@ class GuidanceMixin:
         event.is_wake = True
         event.is_at_or_wake_command = True
         event.set_extra("skip_follow_up_capture", True)
-        event.set_extra("_super_admin_reference_kind", reference_kind)
+        event.set_extra("_qq_chat_workbench_reference_kind", reference_kind)
         return event
 
     async def run_guided_task(self, trace, event):
@@ -765,11 +765,11 @@ class GuidanceMixin:
             config = copy.deepcopy(
                 dict(self.context.get_config(event.unified_msg_origin))
             )
-            if event.get_extra("_super_admin_reference_kind") == "user":
+            if event.get_extra("_qq_chat_workbench_reference_kind") == "user":
                 config["platform_settings"]["reply_with_quote"] = False
                 if event.get_group_id():
                     config["platform_settings"]["reply_with_mention"] = True
-            elif event.get_extra("_super_admin_quote_reply"):
+            elif event.get_extra("_qq_chat_workbench_quote_reply"):
                 # A proactive reply always quotes the selected message, even where
                 # the session does not; ResultDecorateStage inserts the only Reply.
                 config["platform_settings"]["reply_with_quote"] = True

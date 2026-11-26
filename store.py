@@ -15,7 +15,7 @@ from PIL import Image
 PENDING_REPLY_LIMIT = 32 * 1024 * 1024
 PENDING_TOTAL_LIMIT = 128 * 1024 * 1024
 
-trace_context = ContextVar("super_admin_trace", default="")
+trace_context = ContextVar("qq_chat_workbench_trace", default="")
 
 
 def redact(value):
@@ -154,20 +154,20 @@ class Store:
         # The trigger function adds from the database worker thread: event-loop
         # code may test membership or take a copy, never iterate the live set.
         self.guided_traces = set()
-        self.db.create_function("super_admin_mark_guided", 1, self._mark_guided)
+        self.db.create_function("qq_chat_workbench_mark_guided", 1, self._mark_guided)
         self.db.executescript("""
-            CREATE TEMP TRIGGER IF NOT EXISTS super_admin_jobs_mode_insert
+            CREATE TEMP TRIGGER IF NOT EXISTS qq_chat_workbench_jobs_mode_insert
             AFTER INSERT ON main.jobs WHEN NEW.reply_mode!=''
-            BEGIN SELECT super_admin_mark_guided(NEW.trace); END;
-            CREATE TEMP TRIGGER IF NOT EXISTS super_admin_jobs_mode_update
+            BEGIN SELECT qq_chat_workbench_mark_guided(NEW.trace); END;
+            CREATE TEMP TRIGGER IF NOT EXISTS qq_chat_workbench_jobs_mode_update
             AFTER UPDATE OF reply_mode ON main.jobs WHEN NEW.reply_mode!=''
-            BEGIN SELECT super_admin_mark_guided(NEW.trace); END;
-            CREATE TEMP TRIGGER IF NOT EXISTS super_admin_guidance_insert
+            BEGIN SELECT qq_chat_workbench_mark_guided(NEW.trace); END;
+            CREATE TEMP TRIGGER IF NOT EXISTS qq_chat_workbench_guidance_insert
             AFTER INSERT ON main.guidance_instructions
-            BEGIN SELECT super_admin_mark_guided(NEW.trace); END;
-            CREATE TEMP TRIGGER IF NOT EXISTS super_admin_pending_insert
+            BEGIN SELECT qq_chat_workbench_mark_guided(NEW.trace); END;
+            CREATE TEMP TRIGGER IF NOT EXISTS qq_chat_workbench_pending_insert
             AFTER INSERT ON main.pending_sends
-            BEGIN SELECT super_admin_mark_guided(NEW.trace); END;
+            BEGIN SELECT qq_chat_workbench_mark_guided(NEW.trace); END;
         """)
         self.guided_traces.update(
             row[0]
